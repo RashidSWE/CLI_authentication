@@ -7,8 +7,21 @@ import socketserver
 import http.server
 import requests
 from config import CLIENT_ID, REDIRECT_URI, BACKEND_URL
+import json
+import os
 
 authorization_code = None
+
+def save_credentials(token_data):
+    config_dir = os.path.expanduser("~/.insighta")
+    os.makedirs(config_dir, exist_ok=True)
+    creds_path = os.path.join(config_dir, "credentials.json")
+    with open(creds_path, "w") as f:
+        import json
+        json.dump(token_data, f)
+
+    print(f"\n credentials securely saved to {creds_path}")
+
 
 class CallbackHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
@@ -28,7 +41,42 @@ class CallbackHandler(http.server.BaseHTTPRequestHandler):
         else:
             self.send_response(400)
             self.end_headers()
-            slef.wfile.write(b"Authorization failed")
+            self.wfile.write(b"Authorization failed")
+
+def load_credentials():
+    creds_path = os.path.expanduser("~/.insighta/credentials.json")
+    if not os.path.exists(creds_path):
+        return None
+    
+    with open(creds_path, "r") as f:
+        return json.load(f)
+
+def whoami():
+    creds = load_credentials()
+    if not creds:
+        print("Not logged in. Plean run 'insighta login' First.")
+        return
+    
+    access_token = creds.get("access_token")
+
+    headers = {
+        "Authorization": f"Bearer {access_token}"
+    }
+
+    print("Fetching Profile")
+
+    try:
+        response = requests.get(f"{BACKEND_URL}/api/Profile/me", headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            print(data)
+            print(f"Logged in as {data.get('username')}")
+        else:
+            print(f"Session expired or invalid: {response.text}")
+            print("Try running Insighta login again to login.")
+    
+    except Exception as e:
+        print(f"Failed to connecct to backend: {e}")
 
 def login_flow():
     verifier_bytes = secrets.token_bytes(32)
@@ -64,12 +112,15 @@ def login_flow():
 
     try:
         response = requests.post(f"{BACKEND_URL}/auth/github/exchange", json=payload)
-        response.raise_for_status() # raises an error for bad status codes
+        if response.status_code != 200:
+            print(f"\n backend rejected the exchange, Details:")
+            print(response.json())
+            return
 
         token_data = response.json()
         print("login successful")
-        # TODO - later save this token data to a local file
-        print(token_data)
+
+        save_credentials(token_data)
     
     except requests.exceptions.RequestException as e:
         print(f"Failed to authenticate with backend: {e}")

@@ -13,6 +13,7 @@ import os
 authorization_code = None
 
 def save_credentials(token_data):
+    """ Save credentials in a folder (hidden) """
     config_dir = os.path.expanduser("~/.insighta")
     os.makedirs(config_dir, exist_ok=True)
     creds_path = os.path.join(config_dir, "credentials.json")
@@ -25,6 +26,7 @@ def save_credentials(token_data):
 
 class CallbackHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
+        """ OAuth callback handler to authorize code for login """
         global authorization_code
 
         #parse the url to finde the ?code=... parameter
@@ -44,6 +46,7 @@ class CallbackHandler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(b"Authorization failed")
 
 def load_credentials():
+    """ load saved credentials from a local config file """
     creds_path = os.path.expanduser("~/.insighta/credentials.json")
     if not os.path.exists(creds_path):
         return None
@@ -52,9 +55,10 @@ def load_credentials():
         return json.load(f)
 
 def whoami():
+    """ Command that checks who is currently logged in by validating scored credentials"""
     creds = load_credentials()
     if not creds:
-        print("Not logged in. Plean run 'insighta login' First.")
+        print("Not logged in. Pleas run 'insighta login' First.")
         return
     
     access_token = creds.get("access_token")
@@ -69,16 +73,16 @@ def whoami():
         response = requests.get(f"{BACKEND_URL}/api/Profile/me", headers=headers)
         if response.status_code == 200:
             data = response.json()
-            print(data)
             print(f"Logged in as {data.get('username')}")
         else:
             print(f"Session expired or invalid: {response.text}")
             print("Try running Insighta login again to login.")
     
     except Exception as e:
-        print(f"Failed to connecct to backend: {e}")
+        print(f"Failed to connect to backend: {e}")
 
 def login_flow():
+    """ OAuth login flow"""
     verifier_bytes = secrets.token_bytes(32)
     code_verifier =  base64.urlsafe_b64encode(verifier_bytes).decode('utf-8').rstrip('=')
     hashed = hashlib.sha256(code_verifier.encode('utf-8')).digest()
@@ -95,13 +99,12 @@ def login_flow():
     auth_url = f"https://github.com/login/oauth/authorize?{urllib.parse.urlencode(params)}"
     webbrowser.open(auth_url)
 
-    #start local server to catch the redirect
+    # start local server to catch the redirect
     print("Waiting for browser authorization...")
     with socketserver.TCPServer(("localhost", 8080), CallbackHandler) as httpd:
-        httpd.handle_request() # this blocks until Github redirects back to localhost:8080
+        httpd.handle_request()
     
     print(f"Captured code: {authorization_code}")
-    print(f"code verifier: {code_verifier}")
 
     print("Exchaning code for access token")
 

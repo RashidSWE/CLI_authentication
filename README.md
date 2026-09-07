@@ -1,4 +1,4 @@
-# ⚡ Insighta CLI
+# Insighta CLI
 
 Insighta is a secure, globally installable Command Line Interface built in Python. It provides a seamless authentication bridge between a developer's local terminal and the Insighta cloud backend using an industry-standard OAuth 2.0 PKCE flow.
 

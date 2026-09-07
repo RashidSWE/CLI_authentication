@@ -2,7 +2,7 @@
 
 Insighta is a secure, globally installable Command Line Interface built in Python. It provides a seamless authentication bridge between a developer's local terminal and the Insighta cloud backend using an industry-standard OAuth 2.0 PKCE flow.
 
-## ✨ Features
+## Features
 
 * **Browser-Based Authentication:** Logs users in via GitHub without requiring them to paste tokens or passwords into the terminal.
 * **PKCE Security:** Implements Proof Key for Code Exchange (PKCE) to ensure secure token negotiation without exposing client secrets.
@@ -10,7 +10,7 @@ Insighta is a secure, globally installable Command Line Interface built in Pytho
 * **Secure Local Storage:** Automatically persists credentials to a hidden, user-specific directory (`~/.insighta/credentials.json`).
 * **Globally Installable:** Registers the `insighta` command globally on your system for execution from any directory.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 * Python 3.8 or higher.
@@ -20,17 +20,16 @@ Insighta is a secure, globally installable Command Line Interface built in Pytho
 
 1. Clone this repository to your local machine:
    ```bash
-   git clone [https://github.com/yourusername/insighta-cli.git](https://github.com/yourusername/insighta-cli.git)
-   cd insighta-cli
+   git clone [https://github.com/yourusername/insighta-cli.git](https://github.com/yourusername/CLI_authentication.git)
+   cd cli
    ```
 
 2. Install the CLI globally in editable mode:
    ```bash
-   pip install --editable .
+   pip install insighta.
    ```
-   *(Note: The `--editable` flag allows you to pull down code updates in the future without needing to reinstall the package!)*
 
-## 💻 Usage
+## Usage
 
 Once installed, the `insighta` command will be available from anywhere in your terminal.
 
@@ -46,7 +45,7 @@ Test your authentication state. This command reads your local tokens, attaches t
 insighta whoami
 ```
 
-## 🏗️ Architecture: How it Works
+## Architecture: How it Works
 
 Insighta utilizes a "Hub and Spoke" authentication architecture similar to enterprise tools like the AWS CLI or GitHub's `gh` tool.
 
@@ -56,7 +55,7 @@ Insighta utilizes a "Hub and Spoke" authentication architecture similar to enter
 4. **The Minting:** The backend verifies the code, fetches the user's GitHub profile, registers them in the database, and mints custom JWTs.
 5. **The Persistence:** The CLI receives the custom JWTs and saves them to `~/.insighta/credentials.json` for future authenticated requests.
 
-## ⚙️ Configuration
+## Configuration
 
 By default, the CLI expects the backend to be running on `http://localhost:8000`. If you deploy your backend to the cloud, update the `BACKEND_URL` variable in the source code (or configure it to read from an environment variable):
 ```python
